@@ -157,3 +157,4 @@ if __name__ == "__main__":
 	create_document()
 	save_dialog = SaveDialog()
 	save_dialog.exec_()
+	
