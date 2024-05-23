@@ -6,7 +6,7 @@
 ### Author: JohnnyGod
 - Provides document naming right in the workflow
 - Creates a document which contains a part, body, and spreadsheet
--   Optionally start within a sketch
+- - Optionally start within a sketch
 - Allows the user to:
 -   set and update a persistent save directory
 -   automatically generate folders to contain their project files
