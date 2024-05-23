@@ -134,8 +134,9 @@ def make_body_active():
 	"""Make the Body object the active object in FreeCAD."""
 	for obj in FreeCAD.ActiveDocument.Objects:
 		if obj.TypeId == 'PartDesign::Body':
-			FreeCADGui.ActiveDocument.setEdit(obj.Name)
-			break
+			FreeCADGui.Selection.addSelection(obj)
+			FreeCADGui.ActiveDocument.ActiveView.setActiveObject('pdbody', obj)
+			return
 
 def create_document():
 	doc = FreeCAD.newDocument("Unnamed")
@@ -157,4 +158,3 @@ if __name__ == "__main__":
 	create_document()
 	save_dialog = SaveDialog()
 	save_dialog.exec_()
-	
