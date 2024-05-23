@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import FreeCAD
+import FreeCADGui
 import PartDesign
 import os
 from PySide2 import QtWidgets, QtCore, QtGui
@@ -24,7 +25,7 @@ class SaveDialog(QtWidgets.QDialog):
 
 		# Calculate dialog width
 		font_metrics = QtGui.QFontMetrics(self.path_display.font())
-		text_width = font_metrics.width(self.path_display.text())
+		text_width = font_metrics.horizontalAdvance(self.path_display.text())
 		self.dialog_width = max(text_width + 40, 400)
 		self.setFixedSize(self.dialog_width, 200)
 
@@ -78,46 +79,64 @@ class SaveDialog(QtWidgets.QDialog):
 			self.path_display.setText("Save Path: " + new_path)
 			QtWidgets.QMessageBox.information(self, "Save Path Updated", "New save path: " + new_path)
 			font_metrics = QtGui.QFontMetrics(self.path_display.font())
-			text_width = font_metrics.width(self.path_display.text())
+			text_width = font_metrics.horizontalAdvance(self.path_display.text())
 			self.dialog_width = max(text_width + 40, 400)
 			self.setFixedSize(self.dialog_width, 200)
 
 	@staticmethod
 	def _save_document(file_name, create_folder, create_new_sketch, dialog):
-		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_containing_folder", create_folder)
-		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_new_sketch", create_new_sketch)
+		try:
+			FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_containing_folder", create_folder)
+			FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_new_sketch", create_new_sketch)
 
-		if file_name:
-			username = os.getlogin()
-			default_path = f"C:/Users/{username}/Desktop/"
-			global_save_path = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SavePath").GetString("path", default_path)
+			if file_name:
+				username = os.getlogin()
+				default_path = f"C:/Users/{username}/Desktop/"
+				global_save_path = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SavePath").GetString("path", default_path)
 
-			if create_folder:
-				folder_path = os.path.join(global_save_path, file_name)
-				if not os.path.exists(folder_path):
-					os.makedirs(folder_path)
-				file_path = os.path.join(folder_path, file_name + ".FCStd")
+				if create_folder:
+					folder_path = os.path.join(global_save_path, file_name)
+					if not os.path.exists(folder_path):
+						os.makedirs(folder_path)
+					file_path = os.path.join(folder_path, file_name + ".FCStd")
+				else:
+					file_path = os.path.join(global_save_path, file_name + ".FCStd")
+
+				FreeCAD.ActiveDocument.saveAs(file_path)
+
+			if create_new_sketch:
+				FreeCAD.Gui.runCommand('PartDesign_NewSketch', 0)
 			else:
-				file_path = os.path.join(global_save_path, file_name + ".FCStd")
-
-			FreeCAD.ActiveDocument.saveAs(file_path)
-
-		if create_new_sketch:
-			FreeCAD.Gui.runCommand('PartDesign_NewSketch', 0)
-		else:
-			FreeCAD.Gui.runCommand('Std_Workbench', 0)
-		dialog.accept()
+				FreeCAD.Gui.runCommand('Std_Workbench', 0)
+				# Make the body the active object
+				make_body_active()
+			dialog.accept()
+		except Exception as e:
+			QtWidgets.QMessageBox.critical(dialog, "Error", str(e))
 
 	@staticmethod
 	def _continue_without_saving(create_folder, create_new_sketch, dialog):
-		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_containing_folder", create_folder)
-		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_new_sketch", create_new_sketch)
+		try:
+			FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_containing_folder", create_folder)
+			FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_new_sketch", create_new_sketch)
 
-		if create_new_sketch:
-			FreeCAD.Gui.runCommand('PartDesign_NewSketch', 0)
-		else:
-			FreeCAD.Gui.runCommand('Std_Workbench', 0)
-		dialog.accept()
+			if create_new_sketch:
+				FreeCAD.Gui.runCommand('PartDesign_NewSketch', 0)
+			else:
+				FreeCAD.Gui.runCommand('Std_Workbench', 0)
+				# Make the body the active object
+				make_body_active()
+			dialog.accept()
+		except Exception as e:
+			QtWidgets.QMessageBox.critical(dialog, "Error", str(e))
+
+def make_body_active():
+	"""Make the Body object the active object in FreeCAD."""
+	for obj in FreeCAD.ActiveDocument.Objects:
+		if obj.TypeId == 'PartDesign::Body':
+			FreeCADGui.Selection.addSelection(obj)
+			FreeCADGui.ActiveDocument.ActiveView.setActiveObject('pdbody', obj)
+			return
 
 def create_document():
 	doc = FreeCAD.newDocument("Unnamed")
