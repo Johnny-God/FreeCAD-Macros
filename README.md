@@ -1,1 +1,1 @@
-# FreeCAD-Macros
+# Macros
