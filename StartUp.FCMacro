@@ -1,0 +1,141 @@
+# -*- coding: utf-8 -*-
+import FreeCAD
+import PartDesign
+import os
+from PySide2 import QtWidgets, QtCore, QtGui
+
+class SaveDialog(QtWidgets.QDialog):
+	def __init__(self, *args, **kwargs):
+		super(SaveDialog, self).__init__(*args, **kwargs)
+		self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint & ~QtCore.Qt.WindowMinMaxButtonsHint)
+		layout = QtWidgets.QVBoxLayout(self)
+		layout.setSpacing(5)
+		layout.setContentsMargins(10, 10, 10, 10)
+
+		# Input field for document name
+		self.input_text = QtWidgets.QLineEdit(self)
+		self.input_text.setPlaceholderText("Enter File Name")
+		layout.addWidget(self.input_text)
+
+		# Current save path label
+		self.current_path = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SavePath").GetString("path", f"C:/Users/{os.getlogin()}/Desktop/")
+		self.path_display = QtWidgets.QLabel("Save Path: " + self.current_path, self)
+		layout.addWidget(self.path_display)
+
+		# Calculate dialog width
+		font_metrics = QtGui.QFontMetrics(self.path_display.font())
+		text_width = font_metrics.width(self.path_display.text())
+		self.dialog_width = max(text_width + 40, 400)
+		self.setFixedSize(self.dialog_width, 200)
+
+		# Checkboxes
+		self.new_sketch_checkbox = QtWidgets.QCheckBox("Create Sketch", self)
+		self.new_sketch_checkbox.setChecked(FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").GetBool("create_new_sketch", False))
+		layout.addWidget(self.new_sketch_checkbox)
+
+		self.checkbox = QtWidgets.QCheckBox("Create Folder", self)
+		self.checkbox.setChecked(FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").GetBool("create_containing_folder", True))
+		layout.addWidget(self.checkbox)
+
+		# Buttons
+		self.buttons = QtWidgets.QDialogButtonBox(QtCore.Qt.Horizontal, self)
+		self.save_button = self.buttons.addButton("Save", QtWidgets.QDialogButtonBox.AcceptRole)
+		self.dont_save_button = self.buttons.addButton("Continue Without Saving", QtWidgets.QDialogButtonBox.RejectRole)
+		self.discard_button = self.buttons.addButton("Cancel", QtWidgets.QDialogButtonBox.DestructiveRole)
+		layout.addWidget(self.buttons, 0, QtCore.Qt.AlignCenter)
+
+		# Update Save Path Button
+		self.update_button = QtWidgets.QPushButton("Change Save Path")
+		self.update_button.setFixedWidth(self.dialog_width - 40)
+		layout.addWidget(self.update_button, 0, QtCore.Qt.AlignCenter)
+
+		# Connect signals
+		self.save_button.clicked.connect(self.save_document)
+		self.dont_save_button.clicked.connect(self.continue_without_saving)
+		self.discard_button.clicked.connect(self.discard_document)
+		self.update_button.clicked.connect(self.change_save_path)
+
+	def resizeEvent(self, event):
+		super(SaveDialog, self).resizeEvent(event)
+		self.update_button.setFixedWidth(self.width() - 40)
+
+	def save_document(self):
+		self._save_document(self.input_text.text(), self.checkbox.isChecked(), self.new_sketch_checkbox.isChecked(), self)
+
+	def continue_without_saving(self):
+		self._continue_without_saving(self.checkbox.isChecked(), self.new_sketch_checkbox.isChecked(), self)
+
+	def discard_document(self):
+		FreeCAD.closeDocument(FreeCAD.ActiveDocument.Name)
+		self.accept()
+
+	def change_save_path(self):
+		file_dialog = QtWidgets.QFileDialog(self, "Select Save Directory")
+		file_dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+		if file_dialog.exec_() == QtWidgets.QDialog.Accepted:
+			new_path = file_dialog.selectedFiles()[0] + "/"
+			FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SavePath").SetString("path", new_path)
+			self.path_display.setText("Save Path: " + new_path)
+			QtWidgets.QMessageBox.information(self, "Save Path Updated", "New save path: " + new_path)
+			font_metrics = QtGui.QFontMetrics(self.path_display.font())
+			text_width = font_metrics.width(self.path_display.text())
+			self.dialog_width = max(text_width + 40, 400)
+			self.setFixedSize(self.dialog_width, 200)
+
+	@staticmethod
+	def _save_document(file_name, create_folder, create_new_sketch, dialog):
+		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_containing_folder", create_folder)
+		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_new_sketch", create_new_sketch)
+
+		if file_name:
+			username = os.getlogin()
+			default_path = f"C:/Users/{username}/Desktop/"
+			global_save_path = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SavePath").GetString("path", default_path)
+
+			if create_folder:
+				folder_path = os.path.join(global_save_path, file_name)
+				if not os.path.exists(folder_path):
+					os.makedirs(folder_path)
+				file_path = os.path.join(folder_path, file_name + ".FCStd")
+			else:
+				file_path = os.path.join(global_save_path, file_name + ".FCStd")
+
+			FreeCAD.ActiveDocument.saveAs(file_path)
+
+		if create_new_sketch:
+			FreeCAD.Gui.runCommand('PartDesign_NewSketch', 0)
+		else:
+			FreeCAD.Gui.runCommand('Std_Workbench', 0)
+		dialog.accept()
+
+	@staticmethod
+	def _continue_without_saving(create_folder, create_new_sketch, dialog):
+		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_containing_folder", create_folder)
+		FreeCAD.ParamGet("User parameter:BaseApp/Preferences/SaveDialog").SetBool("create_new_sketch", create_new_sketch)
+
+		if create_new_sketch:
+			FreeCAD.Gui.runCommand('PartDesign_NewSketch', 0)
+		else:
+			FreeCAD.Gui.runCommand('Std_Workbench', 0)
+		dialog.accept()
+
+def create_document():
+	doc = FreeCAD.newDocument("Unnamed")
+	doc.Tip = doc.addObject('App::Part', 'Part')
+	doc.Part.Label = 'Part'
+	doc.recompute()
+
+	body = doc.addObject('PartDesign::Body', 'Body')
+	doc.Part.addObject(body)
+	doc.recompute()
+
+	spreadsheet = doc.addObject('Spreadsheet::Sheet', 'aa')
+	doc.Part.addObject(spreadsheet)
+	doc.recompute()
+
+	return doc
+
+if __name__ == "__main__":
+	create_document()
+	save_dialog = SaveDialog()
+	save_dialog.exec_()
