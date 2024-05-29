@@ -1,4 +1,4 @@
-# Macros
+# Macros That I Use
 ## [EasyAlias](https://wiki.freecad.org/Macro_EasyAlias)
 ### Author: TheMarkster
 - Allows the easy creation of aliases within spreadsheets.
