@@ -1,7 +1,4 @@
-# Macros That I Use
-## [EasyAlias](https://wiki.freecad.org/Macro_EasyAlias)
-### Author: TheMarkster
-- Allows the easy creation of aliases within spreadsheets.
+# My Macros
 ## EasyStart
 ### Author: JohnnyGod
 - Provides document naming right in the workflow
@@ -12,3 +9,7 @@
   - automatically generate folders to contain their project files
   - decide whether to save or to continue without saving while keeping their other settings
   - cancel without creating a document, discarding the newly created document for easy cleanup
+# Other Macros
+## [EasyAlias](https://wiki.freecad.org/Macro_EasyAlias)
+### Author: TheMarkster
+- Allows the easy creation of aliases within spreadsheets.
