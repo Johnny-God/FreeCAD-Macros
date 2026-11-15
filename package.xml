@@ -7,6 +7,7 @@
   <maintainer email="Bwood3698@gmail.com">Benjamin M. Wood</maintainer>
   <license file="LICENSE">MIT</license>
   <url type="repository" branch="main">https://github.com/Johnny-God/FreeCAD-Macros</url>
+  <url type="website">https://wiki.freecad.org/Macro_EasyStart</url>
   <url type="readme">https://github.com/Johnny-God/FreeCAD-Macros/blob/main/README.md</url>
   <url type="bugtracker">https://github.com/Johnny-God/FreeCAD-Macros/issues</url>
   <url type="discussion">https://github.com/Johnny-God/FreeCAD-Macros/issues</url>
