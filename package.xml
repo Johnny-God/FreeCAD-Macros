@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+  <name>EasyStart</name>
+  <description>Create a new document already set up as a Part with an active Body and a Spreadsheet. Names the file, creates a matching project folder, and remembers your save path — in one dialog.</description>
+  <version>2026.11.15</version>
+  <date>2026-11-15</date>
+  <maintainer email="Bwood3698@gmail.com">Benjamin M. Wood</maintainer>
+  <license file="LICENSE">MIT</license>
+  <url type="repository" branch="main">https://github.com/Johnny-God/FreeCAD-Macros</url>
+  <url type="readme">https://github.com/Johnny-God/FreeCAD-Macros/blob/main/README.md</url>
+  <url type="bugtracker">https://github.com/Johnny-God/FreeCAD-Macros/issues</url>
+  <url type="discussion">https://github.com/Johnny-God/FreeCAD-Macros/issues</url>
+  <author email="Bwood3698@gmail.com">Benjamin M. Wood</author>
+  <icon>EasyStart.svg</icon>
+  <tag>part-design</tag>
+  <tag>startup</tag>
+  <tag>template</tag>
+  <tag>utilities</tag>
+  <content>
+    <macro>
+      <name>EasyStart</name>
+      <description>New-document bootstrapper: Part > Body + Spreadsheet, named and saved in one step.</description>
+      <subdirectory>./</subdirectory>
+      <file>EasyStart.FCMacro</file>
+      <icon>EasyStart.svg</icon>
+    </macro>
+  </content>
+</package>
